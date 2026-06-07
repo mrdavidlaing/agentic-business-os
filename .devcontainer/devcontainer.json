@@ -6,7 +6,7 @@
   },
   "workspaceFolder": "/workspaces/agentic-business-os",
   "containerEnv": {
-    "PAPERCLIP_HOME": "/workspaces/.paperclip"
+    "PAPERCLIP_HOME": "${containerWorkspaceFolder}/.paperclip-data"
   },
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
@@ -44,7 +44,16 @@
         "terminal.integrated.gpuAcceleration": "off",
         "window.autoDetectColorScheme": true,
         "workbench.preferredDarkColorTheme": "Solarized Dark",
-        "workbench.preferredLightColorTheme": "Solarized Light"
+        "workbench.preferredLightColorTheme": "Solarized Light",
+        "files.watcherExclude": {
+          "**/.paperclip-data/**": true
+        },
+        "files.exclude": {
+          "**/.paperclip-data": true
+        },
+        "search.exclude": {
+          "**/.paperclip-data": true
+        }
       }
     }
   },

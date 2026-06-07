@@ -49,15 +49,29 @@ is `PAPERCLIP_HOME/instances/default/`:
 | `data/backups/` | Automatic DB backups (hourly by default) |
 | `config.json`, `.env` | Instance configuration |
 
-`PAPERCLIP_HOME` is set in `devcontainer.json` (`containerEnv`) to **`/workspaces/.paperclip`** — a
-sibling of the repository on the Codespaces persistent volume. Only `/workspaces` survives a
-**container rebuild**; the home directory does not. Placing the data here means the database,
-secrets key, and storage survive both stop/start *and* rebuilds. It sits outside the repo working
-tree (`/workspaces/agentic-business-os`), so git never tracks it — no `.gitignore` entry needed.
+`PAPERCLIP_HOME` is set in `devcontainer.json` (`containerEnv`) to
+**`${containerWorkspaceFolder}/.paperclip-data`** — i.e. a git-ignored directory *inside* the
+workspace folder. This is the one location that survives a **container rebuild** in both
+environments:
 
-Persistence boundary: this does **not** survive *deleting* the Codespace. To survive recreation you
-would point `DATABASE_URL` at an external managed Postgres and separately persist
-`secrets/master.key` and `data/storage/` (or restore from `data/backups/`).
+- **Local VS Code Dev Containers**: only the project folder is bind-mounted into the container
+  (`/workspaces/<repo>` ⇄ your host folder). A sibling like `/workspaces/.paperclip` would live in
+  the container's ephemeral writable layer and be wiped on rebuild. Keeping the data *inside* the
+  project folder means it lands on the host bind mount and persists.
+- **Codespaces**: the whole `/workspaces` is a persistent volume, so this path persists across
+  rebuilds there too.
+
+It is git-ignored (`.gitignore` → `.paperclip-data/`) and excluded from VS Code's file
+watcher/search, so the embedded PostgreSQL files never get committed or indexed.
+
+Caveats:
+
+- On **macOS/Windows**, the embedded PostgreSQL data dir runs on a Docker Desktop bind mount, whose
+  fsync/permission behaviour can occasionally upset Postgres. If you hit DB corruption locally,
+  switch `PAPERCLIP_HOME` to a named Docker volume instead.
+- This does **not** survive *deleting* the Codespace (or `git clean -dfx` locally). To survive
+  recreation, point `DATABASE_URL` at an external managed Postgres and separately persist
+  `secrets/master.key` and `data/storage/` (or restore from `data/backups/`).
 
 ## First-Time Agent Setup
 

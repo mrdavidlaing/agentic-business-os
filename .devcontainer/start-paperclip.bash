@@ -26,7 +26,13 @@ if ! command -v paperclipai >/dev/null 2>&1; then
   exit 0
 fi
 
-mkdir -p "$paperclip_home"
+# Fail soft: a sidecar that cannot start must not block the whole dev container.
+if ! mkdir -p "$paperclip_home" 2>/dev/null || [[ ! -w $paperclip_home ]]; then
+  printf 'Cannot write PAPERCLIP_HOME (%s); skipping Paperclip startup.\n' "$paperclip_home" >&2
+  printf 'Point PAPERCLIP_HOME at a writable path (e.g. inside the workspace folder, not a\n' >&2
+  printf 'root-owned dir like /workspaces) and restart the container.\n' >&2
+  exit 0
+fi
 
 if [[ -f $pid_file ]]; then
   existing_pid="$(cat "$pid_file" 2>/dev/null || true)"

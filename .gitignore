@@ -1,0 +1,5 @@
+# Paperclip instance state (embedded PostgreSQL data dir, secrets master.key,
+# file storage, backups, config). Lives inside the workspace folder so it
+# persists via the dev container's project bind mount (local VS Code) and the
+# persistent /workspaces volume (Codespaces). Never commit it.
+.paperclip-data/
