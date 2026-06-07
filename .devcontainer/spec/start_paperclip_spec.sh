@@ -30,11 +30,22 @@ EOF
     The path "$TEST_HOME/paperclip.pid" should not be exist
   End
 
-  It 'launches the server in trusted loopback mode and records a pid'
+  It 'onboards on first run when no config exists'
+    When run env PAPERCLIP_HOME="$TEST_HOME" PATH="$TEST_BIN:$PATH" .devcontainer/start-paperclip.bash
+    The status should be success
+    The output should include 'First run: onboarding Paperclip'
+    The output should include 'http://127.0.0.1:3100'
+    The file "$TEST_HOME/paperclip.pid" should be exist
+    The contents of file "$CALL_LOG" should equal 'onboard --yes'
+  End
+
+  It 'runs (does not re-onboard) when a config already exists'
+    mkdir -p "$TEST_HOME/instances/default"
+    printf '%s\n' '{}' >"$TEST_HOME/instances/default/config.json"
+
     When run env PAPERCLIP_HOME="$TEST_HOME" PATH="$TEST_BIN:$PATH" .devcontainer/start-paperclip.bash
     The status should be success
     The output should include 'Starting Paperclip'
-    The output should include 'http://127.0.0.1:3100'
     The file "$TEST_HOME/paperclip.pid" should be exist
     The contents of file "$CALL_LOG" should equal 'run'
   End
@@ -58,7 +69,7 @@ EOF
 
     When run env PAPERCLIP_HOME="$TEST_HOME" PATH="$TEST_BIN:$PATH" .devcontainer/start-paperclip.bash
     The status should be success
-    The output should include 'Starting Paperclip'
-    The contents of file "$CALL_LOG" should equal 'run'
+    The output should include 'http://127.0.0.1:3100'
+    The contents of file "$CALL_LOG" should equal 'onboard --yes'
   End
 End

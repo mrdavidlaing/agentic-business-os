@@ -4,10 +4,13 @@
 # service inside this dev container.
 #
 # Topology: bundled in the dev container, trusted local loopback, no login.
-# `paperclipai run` auto-onboards to trusted/loopback mode on first run and then
-# serves the UI + API on http://127.0.0.1:3100. With no DATABASE_URL set, the
-# server provisions an embedded PostgreSQL cluster under PAPERCLIP_HOME on first
-# start (binaries are downloaded once).
+# First run only (no config yet): `paperclipai onboard --yes` writes the
+# quickstart config (trusted local loopback) and starts serving on
+# http://127.0.0.1:3100. `onboard` is used here, not `run`, because `run` cannot
+# self-onboard in a non-interactive shell (the postStartCommand has no TTY).
+# Every later start: a config exists, so we use `paperclipai run` directly. With
+# no DATABASE_URL set, the server provisions an embedded PostgreSQL cluster under
+# PAPERCLIP_HOME on first start (binaries are downloaded once).
 #
 # This script is the devcontainer postStartCommand: it must return promptly, so
 # the server is launched detached and logs to a file. It is idempotent -- a
@@ -19,7 +22,9 @@ paperclip_home="${PAPERCLIP_HOME:-${HOME}/.paperclip}"
 readonly paperclip_home
 log_file="${paperclip_home}/paperclip.log"
 pid_file="${paperclip_home}/paperclip.pid"
-readonly log_file pid_file
+instance_id="${PAPERCLIP_INSTANCE_ID:-default}"
+config_file="${paperclip_home}/instances/${instance_id}/config.json"
+readonly log_file pid_file instance_id config_file
 
 if ! command -v paperclipai >/dev/null 2>&1; then
   printf '%s\n' 'Paperclip is not installed (paperclipai not found on PATH); skipping startup.' >&2
@@ -44,8 +49,18 @@ if [[ -f $pid_file ]]; then
   rm -f "$pid_file"
 fi
 
-printf 'Starting Paperclip (trusted local loopback) on http://127.0.0.1:3100 ...\n'
-nohup paperclipai run >>"$log_file" 2>&1 &
+if [[ -f $config_file ]]; then
+  # Steady state: config already written, so just run. `run` is non-interactive
+  # safe once a config exists.
+  printf 'Starting Paperclip on http://127.0.0.1:3100 ...\n'
+  nohup paperclipai run >>"$log_file" 2>&1 &
+else
+  # First run only: onboard with quickstart defaults (trusted local loopback),
+  # which writes the config and starts serving. `run` cannot self-onboard in a
+  # non-interactive shell (the postStartCommand has no TTY).
+  printf 'First run: onboarding Paperclip (trusted local loopback) on http://127.0.0.1:3100 ...\n'
+  nohup paperclipai onboard --yes >>"$log_file" 2>&1 &
+fi
 paperclip_pid=$!
 disown "$paperclip_pid" 2>/dev/null || true
 printf '%s\n' "$paperclip_pid" >"$pid_file"
