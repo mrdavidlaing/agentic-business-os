@@ -1,0 +1,52 @@
+{
+  "name": "agentic-business-os",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspaces/agentic-business-os",
+  "containerEnv": {
+    "PAPERCLIP_HOME": "/workspaces/.paperclip"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "postCreateCommand": ".devcontainer/install-lazyvim.bash",
+  "postStartCommand": ".devcontainer/start-paperclip.bash",
+  "forwardPorts": [3100],
+  "portsAttributes": {
+    "3100": {
+      "label": "Paperclip",
+      "onAutoForward": "notify"
+    }
+  },
+  "secrets": {
+    "OPENCODE_API_KEY": {
+      "description": "Shared OpenCode Zen key used natively by OpenCode and Pi"
+    },
+    "ANTHROPIC_API_KEY": {
+      "description": "Optional. Lets Paperclip drive Claude/Anthropic agent adapters."
+    },
+    "OPENAI_API_KEY": {
+      "description": "Optional. Lets Paperclip drive OpenAI agent adapters."
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vsliveshare.vsliveshare",
+        "GitHub.vscode-pull-request-github",
+        "DavidAnson.vscode-markdownlint",
+        "tootone.org-mode"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.gpuAcceleration": "off",
+        "window.autoDetectColorScheme": true,
+        "workbench.preferredDarkColorTheme": "Solarized Dark",
+        "workbench.preferredLightColorTheme": "Solarized Light"
+      }
+    }
+  },
+  "remoteUser": "vscode"
+}

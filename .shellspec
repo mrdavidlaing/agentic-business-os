@@ -1,0 +1,5 @@
+--shell bash
+--default-path .devcontainer/spec
+--format documentation
+--no-color
+--sandbox-path /usr/local/bin:/usr/bin:/bin
