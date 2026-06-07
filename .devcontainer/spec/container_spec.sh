@@ -102,4 +102,9 @@ Describe 'agentic-business-os devcontainer image'
     When run paperclipai --version
     The output should include '2026.529.0'
   End
+
+  It 'makes the Paperclip install tree writable for embedded PostgreSQL symlinks' dockerfile
+    When call test -w /usr/local/lib/node_modules/paperclipai
+    The status should be success
+  End
 End

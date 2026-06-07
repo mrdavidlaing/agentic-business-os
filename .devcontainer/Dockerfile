@@ -120,7 +120,13 @@ RUN case "${TARGETARCH}" in \
 # Installed globally and run as a background service inside this container by
 # .devcontainer/start-paperclip.bash (trusted local loopback, no login).
 # Embedded PostgreSQL binaries are fetched on first run under PAPERCLIP_HOME.
-RUN npm install -g "paperclipai@${PAPERCLIP_VERSION}"
+#
+# embedded-postgres also creates shared-library symlinks (e.g. libcrypto) INSIDE
+# its own package directory on first start. The server runs as the vscode user,
+# but `npm install -g` writes the tree as root, so chown it to vscode -- without
+# this, embedded PostgreSQL fails with EACCES creating those symlinks.
+RUN npm install -g "paperclipai@${PAPERCLIP_VERSION}" \
+    && chown -R vscode:vscode /usr/local/lib/node_modules/paperclipai
 
 # -----------------------------------------------------------------------------
 # Layer 8: Environment and workspace defaults
